@@ -9,6 +9,7 @@ from fastapi import HTTPException
 class KeyChecker(ABC):
     def __init__(self):
         self.keys = {}
+        self.invalid_keys = []
         self.compiled_regex = re.compile(self.get_regex_pattern())
         self._load_keys()
 
@@ -54,6 +55,7 @@ class KeyChecker(ABC):
         for key in self.extract_keys(text):
             if key not in self.keys:
                 self.verify_key(key)
+        self.invalid_keys = []
 
     def list_keys(self, tier=None) -> list[str]:
         return [k for k, v in self.keys.items() if v == tier or (tier is None and v != "dead")]

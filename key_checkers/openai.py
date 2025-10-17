@@ -25,6 +25,8 @@ class OpenAIKeyChecker(KeyChecker):
         return self.TIER_BY_LIMITS.get((rpm, tpm), "unknown")
 
     def verify_key(self, key: str):
+        if key in self.invalid_keys:
+            return
         req = urllib.request.Request(
             "https://api.openai.com/v1/responses",
             data=json.dumps({"model": "gpt-5-nano", "input": "Just say \"a\"", "max_output_tokens": 16}).encode("utf-8"),
@@ -43,6 +45,7 @@ class OpenAIKeyChecker(KeyChecker):
         except urllib.error.HTTPError:
             if key not in self.keys:
                 print("Not a valid key", key)
+                self.invalid_keys.append(key)
                 return
             if self.keys[key] == "dead":
                 del self.keys[key]

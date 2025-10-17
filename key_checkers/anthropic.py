@@ -23,6 +23,8 @@ class AnthropicKeyChecker(KeyChecker):
         return self.TIER_BY_LIMITS.get(rpm, "Tier_5")
 
     def verify_key(self, key: str):
+        if key in self.invalid_keys:
+            return
         req = urllib.request.Request(
             "https://api.anthropic.com/v1/messages",
             data=json.dumps({"model": "claude-3-haiku-20240307", "max_tokens": 16, "messages": [{"role": "user", "content": "Just say \"a\""}]}).encode("utf-8"),
@@ -42,6 +44,7 @@ class AnthropicKeyChecker(KeyChecker):
         except urllib.error.HTTPError:
             if key not in self.keys:
                 print("Not a valid key", key)
+                self.invalid_keys.append(key)
                 return
             if self.keys[key] == "dead":
                 del self.keys[key]
