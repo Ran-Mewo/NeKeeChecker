@@ -37,6 +37,7 @@ class OpenAIKeyChecker(KeyChecker):
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 self.keys[key] = self._tier_from_headers(resp.headers)
+                print("Verified key", key, "with tier", self.keys[key])
                 self._save_keys()
                 return True
         except urllib.error.HTTPError:
@@ -44,7 +45,9 @@ class OpenAIKeyChecker(KeyChecker):
                 return
             if self.keys[key] == "dead":
                 del self.keys[key]
+                print("Deleted key", key, "because it is dead")
             else:
                 self.keys[key] = "dead"
+                print("Marked key", key, "as dead")
             self._save_keys()
 
