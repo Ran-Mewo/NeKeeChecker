@@ -41,6 +41,7 @@ class AnthropicKeyChecker(KeyChecker):
                 return True
         except urllib.error.HTTPError:
             if key not in self.keys:
+                print("Not a valid key", key)
                 return
             if self.keys[key] == "dead":
                 del self.keys[key]
