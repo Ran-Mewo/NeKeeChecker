@@ -29,7 +29,7 @@ class OpenAIKeyChecker(KeyChecker):
             return
         req = urllib.request.Request(
             "https://api.openai.com/v1/responses",
-            data=json.dumps({"model": "gpt-5-nano", "input": "Just say \"a\"", "max_output_tokens": 16}).encode("utf-8"),
+            data=json.dumps({"model": "gpt-5-nano", "input": "Just say \"a\"", "reasoning": {"effort": "low"}}).encode("utf-8"),
             headers={
                 "Authorization": f"Bearer {key}",
                 "Content-Type": "application/json",
