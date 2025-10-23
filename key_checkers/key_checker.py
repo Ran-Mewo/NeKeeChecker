@@ -58,7 +58,14 @@ class KeyChecker(ABC):
         self.invalid_keys = []
 
     def list_keys(self, tier=None) -> list[str]:
-        return [k for k, v in self.keys.items() if v == tier or (tier is None and v != "dead")]
+        return [
+            k for k, v in self.keys.items()
+            if (
+                str(v).lower() != "dead"
+                if tier is None
+                else str(v).lower() == str(tier).lower()
+            )
+        ]
     
     def list_keys_by_tiers(self) -> dict[str, list[str]]:
         tiers: dict[str, list[str]] = {}
