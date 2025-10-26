@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Response, status
+from fastapi import FastAPI, Request, Response, status, BackgroundTasks
 from fastapi import HTTPException
 
 from key_checkers.openai import OpenAIKeyChecker
@@ -26,10 +26,10 @@ async def root():
 
 
 @app.post("/data", status_code=status.HTTP_204_NO_CONTENT)
-async def receive_text(request: Request):
+async def receive_text(request: Request, background_tasks: BackgroundTasks):
     text = (await request.body()).decode('utf-8')
     for checker in key_checkers:
-        checker.check_text(text)
+        background_tasks.add_task(checker.check_text, text)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -60,7 +60,7 @@ async def get_random_key_by_tier(checker_name: str, tier: str):
     return _get_checker_or_404(checker_name).get_key(tier)
 
 @app.on_event("startup")
-@repeat_every(seconds=60 * 60 * 24 * 3, wait_first=False)
+@repeat_every(seconds=60 * 60 * 24 * 2, wait_first=False)
 def verify_all_keys_daily():
     for checker in key_checkers:
         for key in list(checker.keys.keys()):
