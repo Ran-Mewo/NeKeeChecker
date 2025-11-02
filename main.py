@@ -4,11 +4,12 @@ import secrets
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi_utils.tasks import repeat_every
 
 from key_checkers.openai import OpenAIKeyChecker
 from key_checkers.anthropic import AnthropicKeyChecker
-from fastapi_utils.tasks import repeat_every
 from key_checkers.google import GoogleKeyChecker
+from key_checkers.elevenlabs import ElevenLabsKeyChecker
 
 load_dotenv()
 
@@ -26,6 +27,7 @@ key_checkers = [
     OpenAIKeyChecker(),
     AnthropicKeyChecker(),
     GoogleKeyChecker(),
+    ElevenLabsKeyChecker(),
 ]
 
 
