@@ -1,8 +1,11 @@
+import json
 import os
 import secrets
+from typing import Any
 
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response, status
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi_utils.tasks import repeat_every
 
@@ -20,7 +23,18 @@ if not PASSWORD:
     raise RuntimeError("NEKEE_PASSWORD must be set in the environment")
 
 
-app = FastAPI()
+class PrettyJSONResponse(JSONResponse):
+    def render(self, content: Any) -> bytes:  # type: ignore[override]
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=2,
+            separators=(", ", ": "),
+        ).encode("utf-8")
+
+
+app = FastAPI(default_response_class=PrettyJSONResponse)
 security = HTTPBasic()
 
 key_checkers = [
