@@ -64,6 +64,7 @@ async def root():
         summary[checker.get_name()] = {
             "count": sum(len(keys) for keys in active_keys.values()),
             "keys": active_keys,
+            "keys_with_special_features": checker.keys_with_special_features,
         }
     return summary
 

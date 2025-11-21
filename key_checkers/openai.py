@@ -36,10 +36,25 @@ class OpenAIKeyChecker(KeyChecker):
             },
             method="POST",
         )
+        req_reasoning_summary = urllib.request.Request(
+            "https://api.openai.com/v1/responses",
+            data=json.dumps({"model": "gpt-5-nano", "input": "Just say \"a\"", "reasoning": {"effort": "low", "summary": "auto"}}).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 self.keys[key] = self._tier_from_headers(resp.headers)
                 print("Verified key", key, "with tier", self.keys[key])
+                try:
+                    with urllib.request.urlopen(req_reasoning_summary, timeout=10) as resp:
+                        print("Key", key, "with tier", self.keys[key], "can do reasoning summary")
+                        self.keys_with_special_features.append(key)
+                except urllib.error.HTTPError:
+                    pass
                 self._save_keys()
                 return True
         except urllib.error.HTTPError:
@@ -49,6 +64,8 @@ class OpenAIKeyChecker(KeyChecker):
                 return
             if self.keys[key] == "dead":
                 del self.keys[key]
+                if key in self.keys_with_special_features:
+                    self.keys_with_special_features.remove(key)
                 print("Deleted key", key, "because it is dead")
             else:
                 self.keys[key] = "dead"
