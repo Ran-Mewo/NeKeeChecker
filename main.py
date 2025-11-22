@@ -104,6 +104,13 @@ async def get_random_key_by_tier(checker_name: str, tier: str):
     return _get_checker_or_404(checker_name).get_key(tier)
 
 @app.on_event("startup")
+@repeat_every(seconds=60 * 60 * 24 * 30, wait_first=False)
+def verify_all_keys_monthly():
+    for checker in key_checkers:
+        for key in list(checker.monthly_usage_reached_keys):
+            checker.verify_key(key)
+
+@app.on_event("startup")
 @repeat_every(seconds=60 * 60 * 24 * 0.5, wait_first=True)
 def verify_all_keys_daily():
     for checker in key_checkers:

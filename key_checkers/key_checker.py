@@ -10,6 +10,7 @@ class KeyChecker(ABC):
     def __init__(self):
         self.keys = {}
         self.keys_with_special_features = set() # Keys that can do special features like reasoning summary
+        self.monthly_usage_reached_keys = set() # Keys that have reached their monthly usage limit
         self.invalid_keys = []
         self.compiled_regex = re.compile(self.get_regex_pattern())
         self._load_keys()
@@ -32,9 +33,11 @@ class KeyChecker(ABC):
                         # Backward compatibility: if no "keys" field, treat whole data as keys
                         self.keys.update({str(k): str(v) for k, v in data.items()})
                     
-                    # Load keys_with_special_features set
+                    # Load other sets (keys_with_special_features, monthly_usage_reached_keys)
                     if "keys_with_special_features" in data:
                         self.keys_with_special_features = set(data["keys_with_special_features"])
+                    if "monthly_usage_reached_keys" in data:
+                        self.monthly_usage_reached_keys = set(data["monthly_usage_reached_keys"])
         except FileNotFoundError:
             pass
         except Exception:
@@ -45,7 +48,8 @@ class KeyChecker(ABC):
             with open(self._store_path(), "w", encoding="utf-8") as f:
                 data = {
                     "keys": self.keys,
-                    "keys_with_special_features": list(self.keys_with_special_features)
+                    "keys_with_special_features": list(self.keys_with_special_features),
+                    "monthly_usage_reached_keys": list(self.monthly_usage_reached_keys)
                 }
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except Exception:

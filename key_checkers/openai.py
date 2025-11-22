@@ -4,6 +4,7 @@ except ImportError:
     import os, sys
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     from key_checkers.key_checker import KeyChecker
+import threading
 import urllib.request
 import urllib.error
 import json
@@ -23,6 +24,26 @@ class OpenAIKeyChecker(KeyChecker):
         rpm = int((headers.get("x-ratelimit-limit-requests") or "0").replace(",", ""))
         tpm = int((headers.get("x-ratelimit-limit-tokens") or "0").replace(",", ""))
         return self.TIER_BY_LIMITS.get((rpm, tpm), "unknown")
+
+    def _schedule_retry(self, key: str, delay_seconds: int = 600) -> None:
+        timer = threading.Timer(delay_seconds, self.verify_key, args=(key,))
+        timer.daemon = True
+        timer.start()
+
+    def _extract_error_message(self, error: urllib.error.HTTPError) -> str:
+        try:
+            raw_body = error.read()
+        except Exception:
+            return error.reason or ""
+        decoded_body = raw_body.decode("utf-8", errors="ignore") if raw_body else ""
+        try:
+            payload = json.loads(decoded_body)
+            message = payload.get("error", {}).get("message")
+            if isinstance(message, str):
+                return message
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        return decoded_body or (error.reason or "")
 
     def verify_key(self, key: str):
         if key in self.invalid_keys:
@@ -61,7 +82,18 @@ class OpenAIKeyChecker(KeyChecker):
                     pass
                 self._save_keys()
                 return True
-        except urllib.error.HTTPError:
+        except urllib.error.HTTPError as err:
+            if err.code == 429:
+                error_message = self._extract_error_message(err).lower()
+                if "rate" in error_message:
+                    print("Rate limit reached for key", key, "- retrying in 10 minutes")
+                    self._schedule_retry(key)
+                    return
+                if "quota" in error_message:
+                    print("Monthly usage reached for key", key)
+                    self.monthly_usage_reached_keys.add(key)
+                    self._save_keys()
+                    return
             if key not in self.keys:
                 print("Not a valid key", key)
                 self.invalid_keys.append(key)
