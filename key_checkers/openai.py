@@ -87,10 +87,12 @@ class OpenAIKeyChecker(KeyChecker):
                 error_message = self._extract_error_message(err).lower()
                 if "rate" in error_message:
                     print("Rate limit reached for key", key, "- retrying in 10 minutes")
+                    del self.keys[key]
                     self._schedule_retry(key)
                     return
                 if "quota" in error_message:
                     print("Monthly usage reached for key", key)
+                    del self.keys[key]
                     self.monthly_usage_reached_keys.add(key)
                     self._save_keys()
                     return
