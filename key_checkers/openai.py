@@ -47,10 +47,14 @@ class OpenAIKeyChecker(KeyChecker):
         )
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status >= 400:
+                    raise urllib.error.HTTPError(resp.url, resp.status, resp.reason, resp.headers, resp.read())
                 self.keys[key] = self._tier_from_headers(resp.headers)
                 print("Verified key", key, "with tier", self.keys[key])
                 try:
                     with urllib.request.urlopen(req_reasoning_summary, timeout=10) as resp:
+                        if resp.status >= 400:
+                            raise urllib.error.HTTPError(resp.url, resp.status, resp.reason, resp.headers, resp.read())
                         print("Key", key, "with tier", self.keys[key], "can do reasoning summary")
                         self.keys_with_special_features.append(key)
                 except urllib.error.HTTPError:

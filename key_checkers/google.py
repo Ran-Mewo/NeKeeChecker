@@ -43,6 +43,8 @@ class GoogleKeyChecker(KeyChecker):
 
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status >= 400:
+                    raise urllib.error.HTTPError(resp.url, resp.status, resp.reason, resp.headers, resp.read())
                 self.keys[key] = self._tier_from_headers(resp.headers)
                 print("Verified key", key, "with tier", self.keys[key])
                 self._save_keys()

@@ -49,7 +49,9 @@ class ElevenLabsKeyChecker(KeyChecker):
         )
 
         try:
-            with urllib.request.urlopen(request, timeout=10):
+            with urllib.request.urlopen(request, timeout=10) as resp:
+                if resp.status >= 400:
+                    raise urllib.error.HTTPError(resp.url, resp.status, resp.reason, resp.headers, resp.read())
                 tier = self._fetch_subscription_tier(key)
                 self.keys[key] = tier
                 print("Verified key", key, "with tier", tier)
