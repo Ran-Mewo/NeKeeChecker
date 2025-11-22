@@ -9,7 +9,7 @@ from fastapi import HTTPException
 class KeyChecker(ABC):
     def __init__(self):
         self.keys = {}
-        self.keys_with_special_features = [] # Keys that can do special features like reasoning summary
+        self.keys_with_special_features = set() # Keys that can do special features like reasoning summary
         self.invalid_keys = []
         self.compiled_regex = re.compile(self.get_regex_pattern())
         self._load_keys()
@@ -32,9 +32,9 @@ class KeyChecker(ABC):
                         # Backward compatibility: if no "keys" field, treat whole data as keys
                         self.keys.update({str(k): str(v) for k, v in data.items()})
                     
-                    # Load keys_with_special_features list
+                    # Load keys_with_special_features set
                     if "keys_with_special_features" in data:
-                        self.keys_with_special_features = data["keys_with_special_features"]
+                        self.keys_with_special_features = set(data["keys_with_special_features"])
         except FileNotFoundError:
             pass
         except Exception:
@@ -45,7 +45,7 @@ class KeyChecker(ABC):
             with open(self._store_path(), "w", encoding="utf-8") as f:
                 data = {
                     "keys": self.keys,
-                    "keys_with_special_features": self.keys_with_special_features
+                    "keys_with_special_features": list(self.keys_with_special_features)
                 }
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except Exception:

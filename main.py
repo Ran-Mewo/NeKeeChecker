@@ -64,7 +64,7 @@ async def root():
         summary[checker.get_name()] = {
             "count": sum(len(keys) for keys in active_keys.values()),
             "keys": active_keys,
-            "keys_with_special_features": checker.keys_with_special_features,
+            "keys_with_special_features": list(checker.keys_with_special_features),
         }
     return summary
 
@@ -104,7 +104,7 @@ async def get_random_key_by_tier(checker_name: str, tier: str):
     return _get_checker_or_404(checker_name).get_key(tier)
 
 @app.on_event("startup")
-@repeat_every(seconds=60 * 60 * 24 * 1.5, wait_first=False)
+@repeat_every(seconds=60 * 60 * 24 * 0.5, wait_first=True)
 def verify_all_keys_daily():
     for checker in key_checkers:
         for key in list(checker.keys.keys()):

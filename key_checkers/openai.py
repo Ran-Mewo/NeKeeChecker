@@ -56,7 +56,7 @@ class OpenAIKeyChecker(KeyChecker):
                         if resp.status >= 400:
                             raise urllib.error.HTTPError(resp.url, resp.status, resp.reason, resp.headers, resp.read())
                         print("Key", key, "with tier", self.keys[key], "can do reasoning summary")
-                        self.keys_with_special_features.append(key)
+                        self.keys_with_special_features.add(key)
                 except urllib.error.HTTPError:
                     pass
                 self._save_keys()
