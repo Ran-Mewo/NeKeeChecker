@@ -66,7 +66,7 @@ class OpenAIKeyChecker(KeyChecker):
             retry = False
             if err.code == 429:
                 error_message = self._extract_error_message(err).lower()
-                if "rate" in error_message:
+                if "rate" or "large" in error_message:
                     print("Rate limit reached for key", key, "- retrying in 10 minutes")
                     retry = True
                     self._schedule_retry(key)
