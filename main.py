@@ -13,6 +13,7 @@ from key_checkers.openai import OpenAIKeyChecker
 from key_checkers.anthropic import AnthropicKeyChecker
 from key_checkers.google import GoogleKeyChecker
 from key_checkers.elevenlabs import ElevenLabsKeyChecker
+from key_checkers.openrouter import OpenRouterKeyChecker
 
 load_dotenv()
 
@@ -42,6 +43,7 @@ key_checkers = [
     AnthropicKeyChecker(),
     GoogleKeyChecker(),
     ElevenLabsKeyChecker(),
+    OpenRouterKeyChecker(),
 ]
 
 
@@ -65,6 +67,7 @@ async def root():
             "count": sum(len(keys) for keys in active_keys.values()),
             "keys": active_keys,
             "keys_with_special_features": list(checker.keys_with_special_features),
+            "usage_reached_keys": list(checker.monthly_usage_reached_keys),
         }
     return summary
 
@@ -104,7 +107,7 @@ async def get_random_key_by_tier(checker_name: str, tier: str):
     return _get_checker_or_404(checker_name).get_key(tier)
 
 @app.on_event("startup")
-@repeat_every(seconds=60 * 60 * 24 * 30, wait_first=False)
+@repeat_every(seconds=60 * 60 * 24 * 2, wait_first=False)
 def verify_all_keys_monthly():
     for checker in key_checkers:
         for key in list(checker.monthly_usage_reached_keys):

@@ -25,26 +25,6 @@ class OpenAIKeyChecker(KeyChecker):
         tpm = int((headers.get("x-ratelimit-limit-tokens") or "0").replace(",", ""))
         return self.TIER_BY_LIMITS.get((rpm, tpm), "unknown")
 
-    def _schedule_retry(self, key: str, delay_seconds: int = 600) -> None:
-        timer = threading.Timer(delay_seconds, self.verify_key, args=(key,))
-        timer.daemon = True
-        timer.start()
-
-    def _extract_error_message(self, error: urllib.error.HTTPError) -> str:
-        try:
-            raw_body = error.read()
-        except Exception:
-            return error.reason or ""
-        decoded_body = raw_body.decode("utf-8", errors="ignore") if raw_body else ""
-        try:
-            payload = json.loads(decoded_body)
-            message = payload.get("error", {}).get("message")
-            if isinstance(message, str):
-                return message
-        except (json.JSONDecodeError, AttributeError):
-            pass
-        return decoded_body or (error.reason or "")
-
     def verify_key(self, key: str):
         if key in self.invalid_keys:
             return

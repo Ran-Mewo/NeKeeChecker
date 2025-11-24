@@ -3,6 +3,8 @@ import random
 import re
 import os
 import json
+import threading
+import urllib
 
 from fastapi import HTTPException
 
@@ -96,5 +98,25 @@ class KeyChecker(ABC):
         if not keys:
             raise HTTPException(status_code=404, detail="no keys available for tier")
         return random.choice(keys)
+    
+    def _schedule_retry(self, key: str, delay_seconds: int = 600) -> None:
+        timer = threading.Timer(delay_seconds, self.verify_key, args=(key,))
+        timer.daemon = True
+        timer.start()
+
+    def _extract_error_message(self, error: urllib.error.HTTPError) -> str:
+        try:
+            raw_body = error.read()
+        except Exception:
+            return error.reason or ""
+        decoded_body = raw_body.decode("utf-8", errors="ignore") if raw_body else ""
+        try:
+            payload = json.loads(decoded_body)
+            message = payload.get("error", {}).get("message")
+            if isinstance(message, str):
+                return message
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        return decoded_body or (error.reason or "")
 
 
