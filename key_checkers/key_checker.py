@@ -111,13 +111,13 @@ class KeyChecker(ABC):
         except Exception:
             return error.reason or ""
         decoded_body = raw_body.decode("utf-8", errors="ignore") if raw_body else ""
-        try:
-            payload = json.loads(decoded_body)
-            message = payload.get("error", {}).get("message")
-            if isinstance(message, str):
-                return message
-        except (json.JSONDecodeError, AttributeError):
-            pass
+        # try:
+        #     payload = json.loads(decoded_body)
+        #     message = payload.get("error", {}).get("message")
+        #     if isinstance(message, str):
+        #         return message
+        # except (json.JSONDecodeError, AttributeError):
+        #     pass
         return decoded_body or (error.reason or "")
 
 
