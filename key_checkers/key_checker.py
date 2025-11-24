@@ -5,6 +5,7 @@ import os
 import json
 import threading
 import urllib
+import urllib.error
 
 from fastapi import HTTPException
 
