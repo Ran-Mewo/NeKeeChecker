@@ -82,6 +82,7 @@ class OpenRouterKeyChecker(KeyChecker):
                 self._discover_child_keys(key)
                 return True
         except urllib.error.HTTPError as err:
+            retry = False
             if err.code == 429:
                 error_message = self._extract_error_message(err).lower()
                 if "rate" in error_message:
@@ -92,10 +93,9 @@ class OpenRouterKeyChecker(KeyChecker):
                     print("Monthly usage reached for key", key)
                     self.monthly_usage_reached_keys.add(key)
 
-            if key not in self.keys:
-                if not retry:
-                    print("Not a valid key", key)
-                    self.invalid_keys.append(key)
+            if key not in self.keys and not retry:
+                print("Not a valid key", key)
+                self.invalid_keys.append(key)
                 return
             if self.keys[key] == "dead":
                 del self.keys[key]

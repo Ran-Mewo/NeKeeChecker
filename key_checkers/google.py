@@ -50,6 +50,7 @@ class GoogleKeyChecker(KeyChecker):
                 self._save_keys()
                 return True
         except urllib.error.HTTPError as err:
+            retry = False
             if err.code == 429:
                 error_message = self._extract_error_message(err).lower()
                 if "rate" in error_message:
