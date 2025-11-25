@@ -15,6 +15,7 @@ import urllib.request
 class OpenRouterKeyChecker(KeyChecker):
     KEY_ENDPOINT = "https://openrouter.ai/api/v1/key"
     KEYS_ENDPOINT = "https://openrouter.ai/api/v1/keys"
+    CREDITS_ENDPOINT = "https://openrouter.ai/api/v1/credits"
 
     def get_regex_pattern(self) -> str:
         return r"sk-or-v1-[a-z0-9]{64}"
@@ -27,9 +28,35 @@ class OpenRouterKeyChecker(KeyChecker):
         except Exception:
             return {}
 
-    def _tier_from_payload(self, payload: dict) -> str:
+    def _tier_from_payload(self, payload: dict, key: str) -> str:
         data = payload.get("data", payload) if isinstance(payload, dict) else payload
-        return "Free" if isinstance(data, dict) and data.get("is_free_tier") else "Paid"
+        if isinstance(data, dict) and data.get("is_free_tier"):
+            return "Free"
+        return "Free" if self._remaining_credits(key) <= 0 else "Paid"
+
+    def _remaining_credits(self, key: str) -> float:
+        req = urllib.request.Request(
+            self.CREDITS_ENDPOINT,
+            headers={"Authorization": f"Bearer {key}"},
+            method="GET",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                body = resp.read()
+                if resp.status >= 400:
+                    raise urllib.error.HTTPError(resp.url, resp.status, resp.reason, resp.headers, body)
+        except urllib.error.HTTPError:
+            return float("inf")
+        payload = self._decode_json(body)
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if not isinstance(data, dict):
+            return float("inf")
+        try:
+            total_credits = float(data.get("total_credits", 0))
+            total_usage = float(data.get("total_usage", 0))
+        except (TypeError, ValueError):
+            return float("inf")
+        return total_credits - total_usage
 
     def _discover_child_keys(self, key: str):
         req = urllib.request.Request(
@@ -75,7 +102,7 @@ class OpenRouterKeyChecker(KeyChecker):
                 body = resp.read()
                 if resp.status >= 400:
                     raise urllib.error.HTTPError(resp.url, resp.status, resp.reason, resp.headers, body)
-                tier = self._tier_from_payload(self._decode_json(body))
+                tier = self._tier_from_payload(self._decode_json(body), key)
                 self.keys[key] = tier
                 print("Verified key", key, "with tier", tier)
                 self._save_keys()
