@@ -14,6 +14,7 @@ from key_checkers.anthropic import AnthropicKeyChecker
 from key_checkers.google import GoogleKeyChecker
 from key_checkers.elevenlabs import ElevenLabsKeyChecker
 from key_checkers.openrouter import OpenRouterKeyChecker
+from key_checkers.aws import AWSKeyChecker
 
 load_dotenv()
 
@@ -44,6 +45,7 @@ key_checkers = [
     GoogleKeyChecker(),
     ElevenLabsKeyChecker(),
     OpenRouterKeyChecker(),
+    AWSKeyChecker(),
 ]
 
 
