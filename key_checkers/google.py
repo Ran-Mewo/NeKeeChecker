@@ -53,7 +53,7 @@ class GoogleKeyChecker(KeyChecker):
             if err.code == 429:
                 error_message = self._extract_error_message(err).lower()
                 print("Error message:", error_message)
-                if "quota" in error_message:
+                if "quota" or "exhausted" in error_message:
                     print("Monthly usage reached for key", key)
                     self.monthly_usage_reached_keys.add(key)
                 elif "rate" or "large" in error_message:

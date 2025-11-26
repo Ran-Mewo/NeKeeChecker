@@ -190,7 +190,7 @@ class AWSKeyChecker(KeyChecker):
         return code in self.RATE_LIMIT_ERROR_CODES or "throttle" in message
 
     def _is_quota_reached(self, code: str, message: str) -> bool:
-        return code in self.QUOTA_ERROR_CODES or "quota" in message or "exceed" in message
+        return code in self.QUOTA_ERROR_CODES or "quota" in message or "exceed" in message or "exhausted" in message
 
     def _is_invalid(self, code: str, message: str) -> bool:
         if code in self.INVALID_ERROR_CODES:
