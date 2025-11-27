@@ -89,7 +89,7 @@ class AWSKeyChecker(KeyChecker):
         self._serialized_request = json.dumps(self.REQUEST_BODY).encode("utf-8")
 
     def get_regex_pattern(self) -> str:
-        return r"((?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16})[\s\S]*?([A-Za-z0-9\x2F+=]{40})"
+        return r"((?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16})\b[\s\S]*?\b([A-Za-z0-9\x2F+=]{40})\b"
 
     def check_text(self, text: str):
         for match in super().extract_keys(text):
