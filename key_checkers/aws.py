@@ -159,7 +159,7 @@ class AWSKeyChecker(KeyChecker):
                 last_error = err
                 continue
 
-        self._handle_failure(serialized_key, access_key, last_error)
+        self._handle_failure(serialized_key, access_key, secret_key, last_error)
 
     def _normalize_input(self, key: str | Sequence[str]):
         if isinstance(key, str):
@@ -197,17 +197,17 @@ class AWSKeyChecker(KeyChecker):
             return True
         return "not authorized" in message or "invalid" in message
 
-    def _handle_failure(self, serialized_key: str, access_key: str, last_error: Exception | None):
+    def _handle_failure(self, serialized_key: str, access_key: str, secret_key: str, last_error: Exception | None):
         if serialized_key not in self.keys:
-            print("Not a valid AWS key", access_key)
+            print("Not a valid AWS key", access_key, secret_key)
             self.invalid_keys.append(serialized_key)
             return
         if self.keys[serialized_key] == "dead":
             del self.keys[serialized_key]
-            print("Deleted AWS key", access_key, "because it is dead")
+            print("Deleted AWS key", access_key, secret_key, "because it is dead")
         else:
             self.keys[serialized_key] = "dead"
-            print("Marked AWS key", access_key, "as dead")
+            print("Marked AWS key", access_key, secret_key, "as dead")
         self._save_keys()
         if last_error:
-            print("Last AWS verification error for", access_key, ":", last_error)
+            print("Last AWS verification error for", access_key, secret_key, ":", last_error)
