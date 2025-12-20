@@ -58,10 +58,10 @@ class ElevenLabsKeyChecker(KeyChecker):
                 self._save_keys()
                 return True
         except urllib.error.HTTPError as err:
-            if err.code == 429:
+            if err.code == 429 or err.code == 400:
                 error_message = self._extract_error_message(err).lower()
                 print("Error message:", error_message)
-                if "quota" in error_message or "exhausted" in error_message:
+                if "quota" in error_message or "exhausted" in error_message or "credit" in error_message:
                     print("Monthly usage reached for key", key)
                     self.monthly_usage_reached_keys.add(key)
                 elif "rate" in error_message or "large" in error_message:
