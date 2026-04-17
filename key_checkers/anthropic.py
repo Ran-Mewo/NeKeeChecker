@@ -22,7 +22,7 @@ class AnthropicKeyChecker(KeyChecker):
         rpm = int((headers.get("anthropic-ratelimit-requests-limit") or "0").replace(",", ""))
         return self.TIER_BY_LIMITS.get(rpm, "Tier_5")
 
-    def verify_key(self, key: str):
+    def verify_key(self, key: str, reverify: bool = False):
         if key in self.invalid_keys:
             return
         req = urllib.request.Request(
@@ -61,7 +61,7 @@ class AnthropicKeyChecker(KeyChecker):
                 print("Not a valid key", key)
                 self.invalid_keys.append(key)
                 return
-            if self.keys[key] == "dead":
+            if self.keys[key] == "dead" and not reverify:
                 del self.keys[key]
                 print("Deleted key", key, "because it is dead")
             else:

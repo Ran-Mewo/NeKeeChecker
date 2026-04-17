@@ -27,7 +27,7 @@ class GoogleKeyChecker(KeyChecker):
         # Gemini API doesn't return any headers for rate limiting yet.
         return "unknown"
 
-    def verify_key(self, key: str):
+    def verify_key(self, key: str, reverify: bool = False):
         if key in self.invalid_keys:
             return
 
@@ -67,7 +67,7 @@ class GoogleKeyChecker(KeyChecker):
                 print("Not a valid key", key)
                 self.invalid_keys.append(key)
                 return
-            if self.keys[key] == "dead":
+            if self.keys[key] == "dead" and not reverify:
                 del self.keys[key]
                 print("Deleted key", key, "because it is dead")
             else:

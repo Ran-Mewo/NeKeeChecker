@@ -25,7 +25,7 @@ class OpenAIKeyChecker(KeyChecker):
         tpm = int((headers.get("x-ratelimit-limit-tokens") or "0").replace(",", ""))
         return self.TIER_BY_LIMITS.get((rpm, tpm), "unknown")
 
-    def verify_key(self, key: str):
+    def verify_key(self, key: str, reverify: bool = False):
         if key in self.invalid_keys:
             return
         req = urllib.request.Request(
@@ -80,7 +80,7 @@ class OpenAIKeyChecker(KeyChecker):
                 print("Not a valid key", key)
                 self.invalid_keys.append(key)
                 return
-            if self.keys[key] == "dead":
+            if self.keys[key] == "dead" and not reverify:
                 del self.keys[key]
                 if key in self.keys_with_special_features:
                     self.keys_with_special_features.remove(key)

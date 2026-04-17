@@ -35,7 +35,7 @@ class ElevenLabsKeyChecker(KeyChecker):
             print("Error fetching subscription tier for key", key, e)
             return "unknown"
 
-    def verify_key(self, key: str):
+    def verify_key(self, key: str, reverify: bool = False):
         if key in self.invalid_keys:
             return
 
@@ -75,7 +75,7 @@ class ElevenLabsKeyChecker(KeyChecker):
                 print("Not a valid key", key)
                 self.invalid_keys.append(key)
                 return
-            if self.keys[key] == "dead":
+            if self.keys[key] == "dead" and not reverify:
                 del self.keys[key]
                 print("Deleted key", key, "because it is dead")
             else:

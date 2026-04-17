@@ -65,8 +65,11 @@ async def root():
     summary = {}
     for checker in key_checkers:
         active_keys = checker.list_keys_by_tiers()
+        count = sum(len(keys) for keys in active_keys.values())
+        if count == 0 and len(checker.monthly_usage_reached_keys) == 0:
+            continue
         summary[checker.get_name()] = {
-            "count": sum(len(keys) for keys in active_keys.values()),
+            "count": count,
             "keys": active_keys,
             "keys_with_special_features": list(checker.keys_with_special_features),
             "usage_reached_keys": list(checker.monthly_usage_reached_keys),
@@ -78,9 +81,15 @@ async def root():
 async def receive_text(request: Request, background_tasks: BackgroundTasks):
     text = (await request.body()).decode('utf-8')
     for checker in key_checkers:
-        background_tasks.add_task(checker.check_text, text)
+        background_tasks.add_task(checker.check_text, text, reverify=False)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+@app.post("/data/reverify", status_code=status.HTTP_204_NO_CONTENT)
+async def receive_text(request: Request, background_tasks: BackgroundTasks):
+    text = (await request.body()).decode('utf-8')
+    for checker in key_checkers:
+        background_tasks.add_task(checker.check_text, text, reverify=True)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 def _get_checker_or_404(name: str):
     for c in key_checkers:

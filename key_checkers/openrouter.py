@@ -88,7 +88,7 @@ class OpenRouterKeyChecker(KeyChecker):
                 continue
             self.verify_key(hashed_key)
 
-    def verify_key(self, key: str):
+    def verify_key(self, key: str, reverify: bool = False):
         if key in self.invalid_keys:
             return
         retry = False
@@ -124,7 +124,7 @@ class OpenRouterKeyChecker(KeyChecker):
                 print("Not a valid key", key)
                 self.invalid_keys.append(key)
                 return
-            if self.keys[key] == "dead":
+            if self.keys[key] == "dead" and not reverify:
                 del self.keys[key]
                 print("Deleted key", key, "because it is dead")
             else:

@@ -63,7 +63,7 @@ class KeyChecker(ABC):
         pass
 
     @abstractmethod
-    def verify_key(self, key: str):
+    def verify_key(self, key: str, reverify: bool = False):
         pass
 
     def get_name(self) -> str:
@@ -72,10 +72,10 @@ class KeyChecker(ABC):
     def extract_keys(self, text: str) -> list[str]:
         return self.compiled_regex.findall(text)
 
-    def check_text(self, text: str):
+    def check_text(self, text: str, reverify: bool = False):
         for key in self.extract_keys(text):
-            if key not in self.keys:
-                self.verify_key(key)
+            if reverify or (key not in self.keys):
+                self.verify_key(key, reverify)
         self.invalid_keys = []
 
     def list_keys(self, tier=None) -> list[str]:

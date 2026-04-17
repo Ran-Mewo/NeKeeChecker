@@ -91,17 +91,17 @@ class AWSKeyChecker(KeyChecker):
     def get_regex_pattern(self) -> str:
         return r"((?:AKIA|ABIA|ACCA|ASIA)[0-9A-Z]{16})\b[\s\S]*?\b([A-Za-z0-9\x2F+=]{40})\b"
 
-    def check_text(self, text: str):
+    def check_text(self, text: str, reverify: bool = False):
         for match in super().extract_keys(text):
             try:
                 serialized_key, _ = self._normalize_input(match)
             except ValueError:
                 continue
-            if serialized_key not in self.keys:
-                self.verify_key(match)
+            if reverify or (serialized_key not in self.keys):
+                self.verify_key(match, reverify)
         self.invalid_keys = []
 
-    def verify_key(self, key: str | Sequence[str]):
+    def verify_key(self, key: str | Sequence[str], reverify: bool = False):
         try:
             serialized_key, (access_key, secret_key) = self._normalize_input(key)
         except ValueError:
@@ -159,7 +159,7 @@ class AWSKeyChecker(KeyChecker):
                 last_error = err
                 continue
 
-        self._handle_failure(serialized_key, access_key, secret_key, last_error)
+        self._handle_failure(serialized_key, access_key, secret_key, last_error, reverify)
 
     def _normalize_input(self, key: str | Sequence[str]):
         if isinstance(key, str):
@@ -197,12 +197,12 @@ class AWSKeyChecker(KeyChecker):
             return True
         return "not authorized" in message or "invalid" in message
 
-    def _handle_failure(self, serialized_key: str, access_key: str, secret_key: str, last_error: Exception | None):
+    def _handle_failure(self, serialized_key: str, access_key: str, secret_key: str, last_error: Exception | None, reverify: bool = False):
         if serialized_key not in self.keys:
             print("Not a valid AWS key", access_key, secret_key)
             self.invalid_keys.append(serialized_key)
             return
-        if self.keys[serialized_key] == "dead":
+        if self.keys[serialized_key] == "dead" and not reverify:
             del self.keys[serialized_key]
             print("Deleted AWS key", access_key, secret_key, "because it is dead")
         else:
