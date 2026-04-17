@@ -53,10 +53,10 @@ class GoogleKeyChecker(KeyChecker):
             if err.code == 429 or err.code == 400:
                 error_message = self._extract_error_message(err).lower()
                 print("Error message:", error_message)
-                if "quota" in error_message or "exhausted" in error_message or "credit" in error_message:
+                if "exhausted" in error_message or "credit" in error_message:
                     print("Monthly usage reached for key", key)
                     self.monthly_usage_reached_keys.add(key)
-                elif "rate" in error_message or "large" in error_message:
+                elif "per" in error_message or "rate" in error_message or "large" in error_message or "minute" in error_message:
                     print("Rate limit reached for key", key, "- retrying in 10 minutes")
                     self.keys[key] = "rate_limited"
                     self._schedule_retry(key)
