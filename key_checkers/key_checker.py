@@ -41,6 +41,9 @@ class KeyChecker(ABC):
                         self.keys_with_special_features = set(data["keys_with_special_features"])
                     if "monthly_usage_reached_keys" in data:
                         self.monthly_usage_reached_keys = set(data["monthly_usage_reached_keys"])
+                    for key, status in self.keys.items():
+                        if str(status).lower() == "rate_limited":
+                            self._schedule_retry(key)
         except FileNotFoundError:
             pass
         except Exception:
