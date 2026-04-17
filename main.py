@@ -72,7 +72,7 @@ async def root():
             "count": count,
             "keys": active_keys,
             "keys_with_special_features": list(checker.keys_with_special_features),
-            "usage_reached_keys": list(checker.monthly_usage_reached_keys),
+            # "usage_reached_keys": list(checker.monthly_usage_reached_keys),
         }
     return summary
 
