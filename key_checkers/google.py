@@ -53,10 +53,10 @@ class GoogleKeyChecker(KeyChecker):
             if err.code == 429 or err.code == 400:
                 error_message = self._extract_error_message(err).lower()
                 print("Error message:", error_message)
-                if ("exhausted" in error_message or "credit" in error_message) and not reverify:
+                if ("exhausted" in error_message or "credit" in error_message) and ("per" not in error_message):
                     print("Monthly usage reached for key", key)
                     self.monthly_usage_reached_keys.add(key)
-                elif "quota" in error_message or "per" in error_message or "rate" in error_message or "large" in error_message or "minute" in error_message:
+                elif "quota" in error_message or "rate" in error_message or "large" in error_message or "minute" in error_message:
                     print("Rate limit reached for key", key, "- retrying in 10 minutes")
                     self.keys[key] = "rate_limited"
                     self._schedule_retry(key)
@@ -67,12 +67,13 @@ class GoogleKeyChecker(KeyChecker):
                 print("Not a valid key", key)
                 self.invalid_keys.append(key)
                 return
-            if self.keys[key] == "dead" and not reverify:
-                del self.keys[key]
-                print("Deleted key", key, "because it is dead")
-            else:
-                self.keys[key] = "dead"
-                print("Marked key", key, "as dead")
+            if not reverify:
+                if self.keys[key] == "dead":
+                    del self.keys[key]
+                    print("Deleted key", key, "because it is dead")
+                else:
+                    self.keys[key] = "dead"
+                    print("Marked key", key, "as dead")
             self._save_keys()
 
 
